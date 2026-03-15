@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ScottyMd — Web Pairing</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .bg-glow {
+            position: fixed;
+            top: -200px; left: -200px;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(37,211,102,0.15) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-glow2 {
+            position: fixed;
+            bottom: -200px; right: -200px;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(37,211,102,0.08) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 20px;
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 460px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 0 60px rgba(37,211,102,0.08);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .logo-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, #25d366, #128c7e);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+        }
+
+        .logo-text h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .logo-text span {
+            font-size: 12px;
+            color: #25d366;
+            font-weight: 500;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #333, transparent);
+            margin: 20px 0;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+
+        .subtitle strong { color: #25d366; }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .input-wrap {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-wrap .flag {
+            position: absolute;
+            left: 14px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            pointer-events: none;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 14px 14px 14px 46px;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #25d366;
+            box-shadow: 0 0 0 3px rgba(37,211,102,0.1);
+        }
+
+        input[type="text"]::placeholder { color: #444; }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #25d366, #128c7e);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            letter-spacing: 0.3px;
+        }
+
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* Loading spinner inside button */
+        .btn .spinner {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Result box */
+        #result {
+            display: none;
+            margin-top: 24px;
+        }
+
+        .code-box {
+            background: #0d1f12;
+            border: 1px solid #25d366;
+            border-radius: 14px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .code-label {
+            font-size: 12px;
+            color: #25d366;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .code-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 6px;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 16px;
+            text-shadow: 0 0 20px rgba(37,211,102,0.4);
+        }
+
+        .code-copy {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(37,211,102,0.1);
+            border: 1px solid rgba(37,211,102,0.3);
+            border-radius: 8px;
+            padding: 8px 16px;
+            color: #25d366;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .code-copy:hover { background: rgba(37,211,102,0.2); }
+
+        .steps {
+            margin-top: 16px;
+            background: #161616;
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+
+        .steps p {
+            font-size: 13px;
+            color: #888;
+            line-height: 1.8;
+        }
+
+        .steps p strong { color: #ccc; }
+
+        /* Timer */
+        .timer {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #555;
+            text-align: center;
+        }
+
+        .timer span { color: #e74c3c; font-weight: 600; }
+
+        /* Error box */
+        .error-box {
+            background: #1f0d0d;
+            border: 1px solid #e74c3c;
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Success badge */
+        .paired-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(37,211,102,0.1);
+            border: 1px solid rgba(37,211,102,0.3);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+            color: #25d366;
+            margin-bottom: 20px;
+        }
+
+        .dot {
+            width: 7px; height: 7px;
+            background: #25d366;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        footer {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 12px;
+            color: #333;
+        }
+
+        footer a { color: #444; text-decoration: none; }
+        footer a:hover { color: #25d366; }
+    </style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+<div class="bg-glow2"></div>
+
+<div class="card">
+
+    <div class="logo">
+        <div class="logo-icon">🤖</div>
+        <div class="logo-text">
+            <h1>ScottyMd</h1>
+            <span>WhatsApp Bot — Web Pairing</span>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="paired-badge">
+        <div class="dot"></div>
+        Server Online
+    </div>
+
+    <p class="subtitle">
+        Enter your WhatsApp number to link the bot to your account.
+        You'll get a <strong>pairing code</strong> to enter in WhatsApp.
+    </p>
+
+    <label for="phone">📞 Your WhatsApp Number</label>
+    <div class="input-wrap">
+        <span class="flag">🌍</span>
+        <input
+            type="text"
+            id="phone"
+            placeholder="e.g. 263788114185"
+            maxlength="15"
+            autocomplete="off"
+            inputmode="numeric"
+        />
+    </div>
+
+    <button class="btn" id="pairBtn" onclick="requestPair()">
+        Get Pairing Code
+    </button>
+
+    <div id="result"></div>
+
+    <footer>
+        <p>ScottyMd v1.0.0 &nbsp;•&nbsp; Built with ❤️ by Scotty</p>
+    </footer>
+
+</div>
+
+<script>
+    let countdown = null;
+
+    async function requestPair() {
+        const phone = document.getElementById('phone').value.trim().replace(/[^0-9]/g, '');
+        const btn   = document.getElementById('pairBtn');
+        const result = document.getElementById('result');
+
+        // Basic validation
+        if (!phone || phone.length < 7 || phone.length > 15) {
+            showError('Please enter a valid phone number (e.g. 263788114185)');
+            return;
+        }
+
+        // Loading state
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Generating Code...';
+        result.style.display = 'none';
+        result.innerHTML = '';
+        if (countdown) clearInterval(countdown);
+
+        try {
+            const res = await fetch('/pair', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok || data.error) {
+                showError(data.error || 'Something went wrong. Please try again.');
+                btn.disabled = false;
+                btn.innerHTML = 'Get Pairing Code';
+                return;
+            }
+
+            // Show the pairing code
+            showCode(data.code);
+
+        } catch (err) {
+            showError('Could not reach the server. Please refresh and try again.');
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = 'Get New Code';
+    }
+
+    function showCode(code) {
+        const result = document.getElementById('result');
+        result.style.display = 'block';
+
+        let timeLeft = 60;
+
+        result.innerHTML = `
+            <div class="code-box">
+                <div class="code-label">🔐 Your Pairing Code</div>
+                <div class="code-value" id="codeVal">${code}</div>
+                <button class="code-copy" onclick="copyCode('${code}')">
+                    📋 Copy Code
+                </button>
+            </div>
+            <div class="steps">
+                <p>
+                    <strong>1.</strong> Open WhatsApp on your phone<br/>
+                    <strong>2.</strong> Go to <strong>Settings → Linked Devices</strong><br/>
+                    <strong>3.</strong> Tap <strong>"Link a Device"</strong><br/>
+                    <strong>4.</strong> Choose <strong>"Link with phone number"</strong><br/>
+                    <strong>5.</strong> Enter the code above ✅
+                </p>
+            </div>
+            <div class="timer">⏳ Code expires in <span id="timer">60</span>s — request a new one if it expires</div>
+        `;
+
+        // Countdown timer
+        countdown = setInterval(() => {
+            timeLeft--;
+            const el = document.getElementById('timer');
+            if (el) el.textContent = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                const el2 = document.getElementById('timer');
+                if (el2) el2.parentElement.innerHTML = '⚠️ Code may have expired. Click <strong>Get New Code</strong> if needed.';
+            }
+        }, 1000);
+    }
+
+    function showError(msg) {
+        const result = document.getElementById('result');
+        result.style.display = 'block';
+        result.innerHTML = `
+            <div class="error-box">
+                ❌ ${msg}
+            </div>
+        `;
+    }
+
+    function copyCode(code) {
+        navigator.clipboard.writeText(code).then(() => {
+            const btn = document.querySelector('.code-copy');
+            if (btn) {
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => btn.innerHTML = '📋 Copy Code', 2000);
+            }
+        });
+    }
+
+    // Allow pressing Enter in input
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('phone').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') requestPair();
+        });
+    });
+</script>
+
+</body>
+</html>
